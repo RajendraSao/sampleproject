@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="b721559a-7ee6-412d-888e-131ccd3f725c" >
+		<http:listener-connection host="localhost" port="8081">
+		</http:listener-connection>
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="639b8841-6bfe-4161-9562-62483e4392be" file="properties\dev.yaml" />
+	<flow name="sampleprojectFlow" doc:id="9ab6fbf4-fcf0-42ea-8cc6-519980c5dc14" >
+		<http:listener doc:name="Listener" doc:id="8811bae1-bb77-4750-9682-1d053ab2ed6d" config-ref="HTTP_Listener_config" path="/parallelForEach"/>
+		<ee:transform doc:name="Transform Message" doc:id="2f25578d-ef98-4b22-ad04-83b83e1fb11b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var x= 1 to 10
+var data = {
+	"name": "rajendra",
+	"title" : "sao"
+}
+---
+ x map(v,k) -> data]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="acd9ed65-986e-4a7a-b19a-9a062d1d0398" collection="#[payload]">
+			<logger level="INFO" doc:name="Logger" doc:id="8fe62f7f-2799-48a6-ac10-1d2838e58657" message="#[payload]" category="inside foreach"/>
+		</parallel-foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="a06da4b9-7e2e-4bb8-8a0f-c4a8afad1a3b" message="#[payload]" category="outside foreach" />
+		<ee:transform doc:name="Transform Message" doc:id="25e8bbcd-ef92-4d28-b6f1-9fc63195c49e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
